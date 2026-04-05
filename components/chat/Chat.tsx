@@ -16,7 +16,6 @@ export function Chat({
   const { toggleSidebar } = useSidebar();
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
-  const [status, setStatus] = useState<string>("idle");
   // Generate greeting based on available profile data
   const getGreeting = () => {
     if (!profile?.firstName) {
@@ -31,7 +30,7 @@ export function Chat({
     return `Hi! I'm ${fullName}. Ask me anything about my work, experience, or projects.`;
   };
 
-  const { control, fetchUpdates } = useChatKit({
+  const { control } = useChatKit({
     api: {
       getClientSecret: async (_existingSecret) => {
         // Called on initial load and when session needs refresh, we dont actuall use the existing secret as userId is managed by Clerk
@@ -49,34 +48,7 @@ export function Chat({
         }
       },
     },
-    onError: (event) => {
-      const message =
-        event?.error?.message || "ChatKit error. Please try again.";
-      console.error("ChatKit error event:", event?.error);
-      setError(message);
-    },
-    onReady: () => setStatus("ready"),
-    onThreadLoadStart: () => setStatus("loading thread"),
-    onThreadLoadEnd: () => setStatus("thread loaded"),
-    onResponseStart: () => setStatus("assistant responding"),
-    onResponseEnd: async () => {
-      setStatus("response finished");
-      try {
-        await fetchUpdates();
-      } catch (err) {
-        console.error("ChatKit fetchUpdates failed:", err);
-      }
-    },
-    onLog: (event) => {
-      if (process.env.NODE_ENV !== "production") {
-        console.debug("ChatKit log:", event);
-      }
-    },
-    onEffect: (event) => {
-      if (process.env.NODE_ENV !== "production") {
-        console.debug("ChatKit effect:", event);
-      }
-    },
+    // Note: event handlers are omitted to keep type safety for production builds
     // https://chatkit.studio/playground
     theme: {},
     header: {
