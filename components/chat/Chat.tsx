@@ -1,16 +1,22 @@
 "use client";
 
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
+import { SignInButton, useAuth } from "@clerk/nextjs";
 import { createSession } from "@/app/actions/create-session";
 import type { CHAT_PROFILE_QUERYResult } from "@/sanity.types";
 import { useSidebar } from "../ui/sidebar";
+import { useState } from "react";
 
 export function Chat({
   profile,
 }: {
   profile: CHAT_PROFILE_QUERYResult | null;
 }) {
+  const { isSignedIn, isLoaded } = useAuth();
   const { toggleSidebar } = useSidebar();
+  const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const [status, setStatus] = useState<string>("idle");
   // Generate greeting based on available profile data
   const getGreeting = () => {
     if (!profile?.firstName) {
@@ -25,12 +31,51 @@ export function Chat({
     return `Hi! I'm ${fullName}. Ask me anything about my work, experience, or projects.`;
   };
 
-  const { control } = useChatKit({
+  const { control, fetchUpdates } = useChatKit({
     api: {
       getClientSecret: async (_existingSecret) => {
         // Called on initial load and when session needs refresh, we dont actuall use the existing secret as userId is managed by Clerk
-        return createSession();
+        try {
+          setError(null);
+          return await createSession();
+        } catch (err) {
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Failed to create chat session.";
+          console.error("Chat session creation error:", err);
+          setError(message);
+          throw err;
+        }
       },
+    },
+    onError: (event) => {
+      const message =
+        event?.error?.message || "ChatKit error. Please try again.";
+      console.error("ChatKit error event:", event?.error);
+      setError(message);
+    },
+    onReady: () => setStatus("ready"),
+    onThreadLoadStart: () => setStatus("loading thread"),
+    onThreadLoadEnd: () => setStatus("thread loaded"),
+    onResponseStart: () => setStatus("assistant responding"),
+    onResponseEnd: async () => {
+      setStatus("response finished");
+      try {
+        await fetchUpdates();
+      } catch (err) {
+        console.error("ChatKit fetchUpdates failed:", err);
+      }
+    },
+    onLog: (event) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("ChatKit log:", event);
+      }
+    },
+    onEffect: (event) => {
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("ChatKit effect:", event);
+      }
     },
     // https://chatkit.studio/playground
     theme: {},
@@ -72,32 +117,58 @@ export function Chat({
         },
       ],
     },
-    composer: {
-      models: [
-        {
-          id: "crisp",
-          label: "Crisp",
-          description: "Concise and factual",
-        },
-        {
-          id: "clear",
-          label: "Clear",
-          description: "Focused and helpful",
-        },
-        {
-          id: "chatty",
-          label: "Chatty",
-          description: "Conversational companion",
-        },
-      ],
-    },
+    // Leave composer config to defaults to avoid mismatched model ids
 
     disclaimer: {
       text: "Disclaimer: This is my AI-powered twin. It may not be 100% accurate and should be verified for accuracy.",
     },
   });
 
-  return <ChatKit control={control} className="h-full w-full z-50" />;
+  if (!isLoaded) {
+    return (
+      <div className="h-full w-full z-50 flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-sm text-muted-foreground">Loading sign-in…</p>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return (
+      <div className="h-full w-full z-50 flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Please sign in to start a chat session.
+        </p>
+        <SignInButton mode="modal">
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm"
+          >
+            Sign in
+          </button>
+        </SignInButton>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full w-full z-50 flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <button
+          type="button"
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm"
+          onClick={() => {
+            setError(null);
+            setRetryKey((k) => k + 1);
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  return <ChatKit key={retryKey} control={control} className="h-full w-full z-50" />;
 }
 
 export default Chat;

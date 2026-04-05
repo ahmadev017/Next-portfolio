@@ -4,8 +4,41 @@
 import { defineLive } from "next-sanity/live";
 import { client } from "./client";
 
-export const { sanityFetch, SanityLive } = defineLive({
+const live = defineLive({
   client,
-  serverToken: process.env.SANITY_API_TOKEN,
-  browserToken: process.env.SANITY_API_TOKEN,
+  // Silence warnings when tokens are intentionally not provided
+  serverToken: process.env.SANITY_API_TOKEN || false,
+  browserToken: process.env.NEXT_PUBLIC_SANITY_API_TOKEN || false,
 });
+
+export const SanityLive = live.SanityLive;
+
+export const sanityFetch: typeof live.sanityFetch = async (...args) => {
+  const disableFetch =
+    process.env.NEXT_PUBLIC_SANITY_DISABLE_FETCH === "true" ||
+    process.env.SANITY_DISABLE_FETCH === "true";
+
+  if (disableFetch) {
+    return {
+      data: null,
+      sourceMap: null,
+      tags: [],
+    } as Awaited<ReturnType<typeof live.sanityFetch>>;
+  }
+
+  try {
+    return await live.sanityFetch(...args);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        "[sanityFetch] Request failed. Returning empty data to keep the page rendering.",
+        error,
+      );
+    }
+    return {
+      data: null,
+      sourceMap: null,
+      tags: [],
+    } as Awaited<ReturnType<typeof live.sanityFetch>>;
+  }
+};
