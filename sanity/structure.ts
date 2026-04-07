@@ -159,6 +159,15 @@ export const structure: StructureResolver = (S) =>
 
       S.divider(),
 
+      // Chat Sessions
+      S.listItem()
+        .title("Chat Sessions")
+        .icon(CommentIcon)
+        .schemaType("chatSession")
+        .child(S.documentTypeList("chatSession").title("Chat Sessions")),
+
+      S.divider(),
+
       // Navigation
       S.listItem()
         .title("Navigation Links")

@@ -1,6 +1,7 @@
 import type { SchemaTypeDefinition } from "sanity";
 import achievement from "./achievement";
 import blog from "./blog";
+import chatSession from "./chatSession";
 import certification from "./certification";
 import contact from "./contact";
 import education from "./education";
@@ -24,6 +25,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     certification,
     achievement,
     blog,
+    chatSession,
     service,
     contact,
     siteSettings,
