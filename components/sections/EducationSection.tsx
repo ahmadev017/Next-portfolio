@@ -82,6 +82,7 @@ export async function EducationSection() {
                         src={urlFor(edu.logo).width(64).height(64).url()}
                         alt={`${edu.institution} logo`}
                         fill
+                        sizes="64px"
                         className="object-cover"
                       />
                     </div>

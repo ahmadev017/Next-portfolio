@@ -35,6 +35,7 @@ export function ProfileImage({
         src={imageUrl}
         alt={`${firstName} ${lastName}`}
         fill
+        sizes="(min-width: 1024px) 480px, 80vw"
         className="object-cover transition-transform duration-300 group-hover:scale-105"
         priority
       />

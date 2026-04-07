@@ -50,6 +50,7 @@ export async function ProjectsSection() {
                         .url()}
                       alt={project.title || "Project image"}
                       fill
+                      sizes="(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {/* Glass overlay that fades on hover */}

@@ -64,6 +64,7 @@ export async function ExperienceSection() {
                         src={urlFor(exp.companyLogo).width(64).height(64).url()}
                         alt={`${exp.company} company logo`}
                         fill
+                        sizes="64px"
                         className="object-cover"
                       />
                     </div>

@@ -145,6 +145,7 @@ export async function CertificationsSection() {
                                   .url()}
                                 alt={`${cert.name} badge`}
                                 fill
+                                sizes="64px"
                                 className="object-contain"
                               />
                             </div>

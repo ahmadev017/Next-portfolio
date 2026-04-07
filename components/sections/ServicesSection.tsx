@@ -96,6 +96,7 @@ export async function ServicesSection() {
                           src={urlFor(service.icon).width(64).height(64).url()}
                           alt={service.title || "Service"}
                           fill
+                          sizes="64px"
                           className="object-contain"
                         />
                       </div>
@@ -204,6 +205,7 @@ export async function ServicesSection() {
                           src={urlFor(service.icon).width(48).height(48).url()}
                           alt={service.title || "Service"}
                           fill
+                          sizes="48px"
                           className="object-contain"
                         />
                       </div>
