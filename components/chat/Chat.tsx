@@ -131,7 +131,7 @@ export function Chat({
     };
 
     const assistantId = crypto.randomUUID();
-    const nextMessages = [
+    const nextMessages: ChatMessage[] = [
       ...messages,
       userMessage,
       { id: assistantId, role: "assistant", content: "" },
