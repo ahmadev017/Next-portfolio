@@ -96,14 +96,18 @@ export function Chat({
         messages?: Array<{ role?: "user" | "assistant"; content?: string }>;
       };
       if (Array.isArray(data.messages) && data.messages.length > 0) {
-        const hydrated = data.messages
-          .filter((msg) => msg?.content)
-          .map((msg) => ({
-            id: crypto.randomUUID(),
-            role: msg.role === "assistant" ? "assistant" : "user",
-            content: msg.content as string,
-          }));
-        setMessages(hydrated);
+          const hydrated = data.messages
+            .filter((msg) => msg?.content)
+            .map((msg) => {
+              const role: "user" | "assistant" =
+                msg.role === "assistant" ? "assistant" : "user";
+              return {
+                id: crypto.randomUUID(),
+                role,
+                content: msg.content as string,
+              };
+            });
+          setMessages(hydrated);
       } else {
         setError("No previous chat history found.");
       }
